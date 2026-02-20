@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Smart Bin Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Firebase v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>🗑 Smart Dustbin Monitor</h1>
+
+        <div class="circle" id="circle">
+          <span id="percent">0%</span>
+        </div>
+
+        <h2 id="distance">Distance: -- cm</h2>
+        <h2 id="status" class="status">Status: --</h2>
+      </div>
+    </div>
+
+    <script>
+      var firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        databaseURL:
+          "https://dustbin-web-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "dustbin-web",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      var db = firebase.database();
+      var binRef = db.ref("bin");
+
+      const BIN_HEIGHT = 100; // cm (change if needed)
+
+      binRef.on("value", function (snapshot) {
+        var data = snapshot.val();
+        if (data && data.distance !== null) {
+          let distance = data.distance;
+          let percent = Math.min(
+            100,
+            Math.max(0, ((BIN_HEIGHT - distance) / BIN_HEIGHT) * 100),
+          );
+
+          document.getElementById("distance").innerText =
+            "Distance: " + distance.toFixed(2) + " cm";
+
+          document.getElementById("percent").innerText =
+            percent.toFixed(0) + "%";
+
+          let statusText = data.status;
+          let statusEl = document.getElementById("status");
+          let circle = document.getElementById("circle");
+
+          statusEl.innerText = "Status: " + statusText;
+
+          // Change color based on fill
+          if (percent > 70) {
+            circle.style.background = "#e74c3c";
+            statusEl.style.color = "#e74c3c";
+          } else if (percent > 30) {
+            circle.style.background = "#f1c40f";
+            statusEl.style.color = "#f1c40f";
+          } else {
+            circle.style.background = "#2ecc71";
+            statusEl.style.color = "#2ecc71";
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
